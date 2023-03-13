@@ -1,25 +1,23 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addExpense, fetchCurrencyAction } from '../redux/actions';
+import { fetchCurrencyAction, updateExpenseAction } from '../redux/actions';
 import fetchCurrencies from '../services/serviceCurrencies';
 
-class WalletForm extends Component {
+class EditWalletForm extends Component {
   state = {
     value: '',
     description: '',
     currency: 'USD',
     method: 'Dinheiro',
     tag: 'Alimentação',
-    exchangeRates: {},
-    // isDisable: true,
   };
 
   componentDidMount() {
-    const { dispatch } = this.props;
+    // const { dispatch } = this.props;
     // const response = fetchCurrencies();
-    dispatch(fetchCurrencyAction());
     // dispatch(fetchCurrencyAction());
+    fetchCurrencyAction();
     // console.log(response);
   }
 
@@ -31,18 +29,8 @@ class WalletForm extends Component {
 
   handleSubmit = async (event) => {
     event.preventDefault();
-    const currentCurrency = await fetchCurrencies();
-    const { dispatch } = this.props;
-    this.setState({ exchangeRates: currentCurrency });
-    dispatch(addExpense(this.state));
-    this.setState({
-      value: '',
-      description: '',
-      currency: 'USD',
-      method: 'Dinheiro',
-      tag: 'Alimentação',
-      exchangeRates: {},
-    });
+    const { updatedExpenses } = this.props;
+    updatedExpenses(this.state);
   };
 
   render() {
@@ -87,8 +75,9 @@ class WalletForm extends Component {
               data-testid="currency-input"
             >
               {currencies.map((allCurrency) => (
-                <option key={ allCurrency }>
+                <option key={ allCurrency.id } value={ allCurrency }>
                   { allCurrency }
+                  {/* {console.log(allCurrency)} */}
                 </option>
               ))}
             </select>
@@ -134,7 +123,7 @@ class WalletForm extends Component {
             onClick={ this.handleSubmit }
 
           >
-            Adicionar despesa
+            Editar despesa
           </button>
         </form>
       </div>
@@ -146,9 +135,14 @@ const mapStateToProps = (state) => ({
   wallet: state.wallet,
 });
 
-WalletForm.propTypes = {
-  dispatch: PropTypes.func.isRequired,
+const mapDispatchToProps = (dispatch) => ({
+  updatedExpenses: (state) => dispatch(updateExpenseAction(state)),
+  fetchCurrency: () => dispatch(fetchCurrencies()),
+});
+
+EditWalletForm.propTypes = {
+  updatedExpenses: PropTypes.func.isRequired,
   wallet: PropTypes.shape().isRequired,
 };
 
-export default connect(mapStateToProps, null)(WalletForm);
+export default connect(mapStateToProps, mapDispatchToProps)(EditWalletForm);
